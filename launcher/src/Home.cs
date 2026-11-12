@@ -149,7 +149,9 @@ public sealed class QuietHome : NUIApplication
    var ring=new View{Size2D=new Size2D(w,h),BackgroundColor=new Color(0,0,0,0),CornerRadius=new Vector4(18,18,18,18),BorderlineWidth=4,BorderlineColor=accent,Opacity=0};
    card.Add(ring);
    var label=Text(app.Name,x,y+h+14,w,38,27,ink,"Semibold");
-   slots.Add(new Slot{Card=card,Shadow=shadow,FocusRing=ring,Label=label,Name=app.Name,Action="app:"+app.Id,Description=app.Description,Row=i/5,X=x,Y=y,W=w,H=h});
+   // Catalog entries with an hdmi:/source: Id switch inputs instead of launching an app.
+   var action=app.Id.StartsWith("hdmi:",StringComparison.Ordinal)||app.Id.StartsWith("source:",StringComparison.Ordinal)?app.Id:"app:"+app.Id;
+   slots.Add(new Slot{Card=card,Shadow=shadow,FocusRing=ring,Label=label,Name=app.Name,Action=action,Description=app.Description,Row=i/5,X=x,Y=y,W=w,H=h});
   }
   Text(library.FindAll(a=>!a.Utility).Count+" apps",80,218,500,30,21,muted);
   if(AppLibrary.PageCount(library.Count)>1){
