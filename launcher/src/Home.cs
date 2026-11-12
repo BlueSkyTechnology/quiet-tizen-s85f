@@ -28,7 +28,7 @@ public sealed class QuietHome : NUIApplication
  Animation focusAnimation;
  bool fontLoaded;
  Tizen.NUI.Timer clockTimer;
- int page, selected, area=1, lastSource=15;
+ int page, selected, area=1, lastSource=16;
  string editing="";
  long buildMilliseconds;
  int currentVolume, currentMute;
@@ -78,7 +78,7 @@ public sealed class QuietHome : NUIApplication
  protected override void OnPause(){base.OnPause();editing="";clockTimer?.Stop();WriteState("paused");}
  void Home(string activity){clockTimer?.Start();RefreshSource();if(tabs!=null){bool unchanged=page==0&&area==1&&editing==""&&selected==SourceIndex();page=0;area=1;editing="";selected=SourceIndex();if(!unchanged)BuildPage();WriteState(activity);}}
  void OpenSettings(string activity){clockTimer?.Start();page=2;area=1;selected=0;editing="";BuildPage();WriteState(activity);}
- void RefreshSource(){try{int n;if(vconf_get_int("memory/system/source_type",out n)==0&&((n>=13&&n<=15)||n==0||n==56))lastSource=n;}catch{}}
+ void RefreshSource(){try{int n;if(vconf_get_int("memory/system/source_type",out n)==0&&((n>=13&&n<=16)||n==0||n==56))lastSource=n;}catch{}}
  int SourceIndex(){return lastSource==0?1:lastSource==56?2:0;}
  View Add(View v){scene.Add(v);Window.Default.Add(v);return v;}
  View Panel(int x,int y,int w,int h,Color color,int radius=18){return Add(new View{Position2D=new Position2D(x,y),Size2D=new Size2D(w,h),BackgroundColor=color,CornerRadius=new Vector4(radius,radius,radius,radius)});}
@@ -98,8 +98,8 @@ public sealed class QuietHome : NUIApplication
   for(int i=0;i<3;i++){tabs[i]=Text(nav[i],tx[i],158,tw[i],68,30,muted);tabs[i].HorizontalAlignment=HorizontalAlignment.Center;}
   clock=Text(DateTime.Now.ToString("h:mm tt"),1540,170,300,45,24,muted);clock.HorizontalAlignment=HorizontalAlignment.End;
   if(page==0){
-   var hero=Feature("Apple TV","hdmi:15","Media player · HDMI","feature-hdmi.svg",80,262,1040,442,"hero");
-   hero.Card.Add(Label("APPLE TV",44,52,550,40,24,new Color(.86f,.91f,1,1),"Semibold"));
+   var hero=Feature("Roku","hdmi:16","Streaming box · HDMI","feature-hdmi.svg",80,262,1040,442,"hero");
+   hero.Card.Add(Label("ROKU",44,52,550,40,24,new Color(.86f,.91f,1,1),"Semibold"));
    hero.Card.Add(Label("Watch.",40,124,560,100,72,white,"Display"));
    hero.Card.Add(Label("Switch to HDMI",46,246,440,48,30,new Color(.88f,.93f,1,1)));
    Feature("Live TV","source:0","Antenna · Broadcast","feature-tv.svg",1160,262,320,442,"portrait");
@@ -122,7 +122,7 @@ public sealed class QuietHome : NUIApplication
   Dock("Netflix","app:org.tizen.netflix-app","netflix",0);
   Dock("YouTube","app:9Ur5IzDKqV.TizenYouTube","youtube",1);
   Dock("Prime Video","app:org.tizen.primevideo","prime",2);
-  Dock("Apple TV","hdmi:15","appletv",3);
+  Dock("Roku","hdmi:16","appletv",3);
   Dock("Live TV","source:0","livetv",4);
   Dock("Your Apps","page:1","apps",5);
   }

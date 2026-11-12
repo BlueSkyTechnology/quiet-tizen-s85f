@@ -1,14 +1,30 @@
-# Deploying Quiet Tizen on a 2025 S85F OLED (QN55S85FAFXZA)
+# Deploying Quiet Tizen on 2025 S85F OLEDs (QN55S85FAFXZA, QN65S85FAFXZA)
 
-Deployment record for a second TV model using this project's generalized tooling,
-2026-11. The original case study targets the UN75U8000FFXZA on T-KSU2EFAKUC-1300.9;
-this note documents what matched, what diverged, and what was adapted. Home-network
+Deployment records for two TVs using this project's generalized tooling, 2026-11.
+The original case study targets the UN75U8000FFXZA on T-KSU2EFAKUC-1300.9; these
+notes document what matched, what diverged, and what was adapted. Home-network
 addresses and device-specific identifiers are intentionally omitted.
+
+## Devices
+
+| | 55-inch | 65-inch |
+|---|---|---|
+| Model | QN55S85FAFXZA | QN65S85FAFXZA |
+| Firmware | T-PTMFAKUC-0090-1130.3 | T-PTMFAKUC-0090-1203.0 |
+| Profile | `profiles/qn55s85fafxza-1130.3.json` | `profiles/qn65s85fafxza-1203.0.json` |
+| Hero HDMI card | Apple TV box, source 15 | Roku box, source 16 |
+| Side cards | Live TV (0), DLNA (56) | Live TV (0), DLNA (56) |
+
+`launcher/src/Home.cs` is a per-device template: the committed variant carries the
+latest deployment's cards (Roku on the 65-inch). Each deployment edits the hero
+card labels/actions, `lastSource`, the `RefreshSource` acceptance window and the
+dock entries, then rebuilds. Read source IDs with Probe on each TV — never copy
+them between devices.
 
 ## Compatibility findings
 
-The S85F (firmware `T-PTMFAKUC-0090-1130.3`) landed on the same platform family as
-the tested U8000F:
+Both S85Fs landed on the same platform family as the tested U8000F (verified
+per-device before any mutation):
 
 - Runtime: .NET 6.0.9 at `/usr/share/dotnet/shared/Microsoft.NETCore.App/6.0.9`
 - Kernel: Linux 5.4.261 armv7l
@@ -79,6 +95,12 @@ tv exec --script recipes/restore-launcher.sh --arg home-01 \
 
 - Runtime systemd masks do not survive a restart; Samsung catalog refreshes can
   restore the cached/live preload flags. Recheck after firmware updates.
+- On the 65-inch (1203.0), one hard power cycle reverted `db/appfw/startup_appid`
+  to the viewer; boot still landed on Quiet Home via the home handler. Re-set it
+  and verify after any ungraceful shutdown.
+- `app_launcher -s com.samsung.tv.store` starts the store process without its
+  Smart Hub environment and it rendered blank/froze one unit; opening the store
+  through the launcher's "Get more apps" tile is the reliable path.
 - The project never claimed a decrypted-traffic audit; "advertising/ACR components
   disabled" is the accurate statement, not "zero telemetry proven".
 - `tv.py pull`/absolute-path `exec` commands need MSYS path-conversion disabled on
