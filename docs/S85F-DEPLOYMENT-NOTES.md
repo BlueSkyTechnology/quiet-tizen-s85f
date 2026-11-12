@@ -14,6 +14,7 @@ addresses and device-specific identifiers are intentionally omitted.
 | Profile | `profiles/qn55s85fafxza-1130.3.json` | `profiles/qn65s85fafxza-1203.0.json` |
 | Hero HDMI card | Apple TV box, source 15 | Roku box, source 16 |
 | Side cards | Live TV (0), DLNA (56) | Live TV (0), DLNA (56) |
+| App catalog | 13 apps + tile | 16 apps + tile (2 pages) |
 
 `launcher/src/Home.cs` is a per-device template: the committed variant carries the
 latest deployment's cards (Roku on the 65-inch). Each deployment edits the hero
@@ -101,6 +102,12 @@ tv exec --script recipes/restore-launcher.sh --arg home-01 \
 - `app_launcher -s com.samsung.tv.store` starts the store process without its
   Smart Hub environment and it rendered blank/froze one unit; opening the store
   through the launcher's "Get more apps" tile is the reliable path.
+- The "Get more apps" tile is the final entry of the shipped
+  `launcher/assets/apps.json` (`Id: org.volt.apps`, `Utility: true`). Replacing
+  the catalog wholesale with `apps.local.json` silently drops it — re-append the
+  utility entry to every custom catalog, and keep per-device catalogs separate
+  when the installed-app sets differ (an entry whose app is not installed fails
+  at launch with the on-screen error toast).
 - The project never claimed a decrypted-traffic audit; "advertising/ACR components
   disabled" is the accurate statement, not "zero telemetry proven".
 - `tv.py pull`/absolute-path `exec` commands need MSYS path-conversion disabled on
