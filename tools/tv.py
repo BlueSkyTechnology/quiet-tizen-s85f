@@ -19,7 +19,7 @@ sys.path.insert(0, str(ROOT / "vendor"))
 from samsung_tv_root.archive_root import probe, _check_target, _capture
 from samsung_tv_root.sdb import SdbClient, find_sdb
 
-PROFILE = json.loads((ROOT / "profiles/un75u8000ffxza-1300.9.json").read_text())
+DEFAULT_PROFILE = ROOT / "profiles/un75u8000ffxza-1300.9.json"
 STAGE = "/home/owner/share/tmp/sdk_tools/quiet-tizen"
 
 
@@ -48,10 +48,10 @@ def observed_model(client):
     return rows[0][-1]
 
 
-def check_identity(model, firmware):
-    if model != PROFILE["model"]:
+def check_identity(model, firmware, profile):
+    if model != profile["model"]:
         raise ValueError(f"Unsupported model {model!r}; stop and investigate a separate profile.")
-    if firmware != PROFILE["firmware"]:
+    if firmware != profile["firmware"]:
         raise ValueError("Supply --firmware with the exact version read from About This TV. "
                          "Only the documented build is accepted. Do not guess this value.")
 
@@ -91,6 +91,8 @@ def main():
     parser.add_argument("--firmware", help="Operator-verified version from the TV's About screen")
     parser.add_argument("--sdb", help="Path to Samsung's separately installed SDB")
     parser.add_argument("--callback-host", help="This computer's LAN IPv4 if route detection is wrong")
+    parser.add_argument("--profile", type=Path, default=DEFAULT_PROFILE,
+                        help="Device profile JSON; defaults to the documented U8000F build")
     sub = parser.add_subparsers(dest="action", required=True)
     sub.add_parser("doctor", help="Read SDB identity and archive-route capabilities; does not obtain root")
     sub.add_parser("root-check", help="Temporarily obtain root and run id; no configuration changes")
@@ -121,7 +123,7 @@ def main():
         print(_capture(client, "uname -srmo; readlink -f /usr/share/dotnet.tizen/netcoreapp"))
         print("Preflight only. Firmware must be read on the TV; root is not yet confirmed.")
         return
-    check_identity(model, args.firmware)
+    check_identity(model, args.firmware, json.loads(args.profile.read_text()))
     if args.action == "push":
         if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,100}", args.name):
             raise ValueError("Use a simple staging filename without directory components.")
@@ -145,8 +147,10 @@ def main():
         script = args.script.read_bytes()
         if len(script) > 45000:
             raise ValueError("Script too large for the bounded command channel; split into phases.")
+        # Normalize CRLF from a Windows checkout; recipes are plain shell text.
+        script = script.replace(b"\r\n", b"\n")
         encoded = base64.b64encode(script).decode()
-        command = f"printf '%s' {shlex.quote(encoded)} | /bin/sh -s -- " + shlex.join(args.arg)
+        command = f"printf '%s' {shlex.quote(encoded)} | base64 -d | /bin/sh -s -- " + shlex.join(args.arg)
     else:
         if args.arg:
             raise ValueError("--arg requires --script.")
