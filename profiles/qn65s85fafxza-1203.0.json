@@ -23,7 +23,7 @@
       ]
     },
     "voice": {
-      "description": "Bixby, Alexa, wake-word and voice UI. Opt in only if voice functions are unwanted.",
+      "description": "Bixby, Alexa, wake-word and voice UI. Opt in only if voice functions are unwanted. Includes far-field voice (com.samsung.tv.farfieldvoice), found running on both S85Fs 2026-11-12 outside the U8000F group: registry row auto-restart on, launched at boot by WAS preload regardless of app_disable; gated by a stop marker + registry disable + preload flags.",
       "app_ids": [
         "com.samsung.tv.alexa-client",
         "com.samsung.tv.alexa-fullscreen-app",
@@ -41,7 +41,8 @@
         "org.tizen.voice-app",
         "org.tizen.voice-app-service",
         "org.tizen.voice-client",
-        "org.tizen.voice-onboarding"
+        "org.tizen.voice-onboarding",
+        "com.samsung.tv.farfieldvoice"
       ]
     },
     "context": {
@@ -153,6 +154,11 @@
       "unit": "slive-provider-daemon.service",
       "marker": "slive-provider-daemon",
       "group": "tv-plus"
+    },
+    {
+      "unit": "com.samsung.tv.farfieldvoice.service",
+      "marker": "com.samsung.tv.farfieldvoice",
+      "group": "voice"
     }
   ],
   "runtime_only_masks": [

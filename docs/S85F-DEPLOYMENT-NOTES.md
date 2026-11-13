@@ -92,7 +92,42 @@ tv exec --script recipes/restore-launcher.sh --arg home-01 \
 # then preferences from each snapshot's preferences-before.txt.
 ```
 
-## Caveats that carry over
+## Far-field voice: the listener the U8000F group missed (2026-11-12)
+
+The "AI hearing us" report was real: `com.samsung.tv.farfieldvoice`
+(ffv-service, the always-listening far-field mic daemon) runs on BOTH S85Fs
+and is **not in the U8000F voice group**. Its registry row had
+`app_autorestart=true`, and a Samsung catalog refresh had silently restored
+`db/was/preload_by_country=true` (both the vconf key and WAS
+`RESERVED_18.$.rsp.preloadByCountry`) — the documented relapse — which
+force-preloads voice apps at boot **regardless of `app_disable`** (proof:
+`org.tizen.voice-app` and `com.samsung.tv.vif` were registry-disabled yet
+running, even after a post-cleanup reboot). `app_launcher -k` alone does not
+stick: the live app-loader respawns them within seconds.
+
+The `voice-02` phase that holds (verify after each reboot):
+1. registry-disable farfieldvoice (disable/onboot/autorestart → false/false/false)
+2. stop markers on `com.samsung.tv.farfieldvoice.service` and
+   `org.tizen.voice-app.service` (both carry `ConditionPathExists=!` —
+   vif has no unit; with the other two gated it stays down)
+3. preload flags set false again (BOTH layers)
+4. reboot — the only thing that clears the respawner; then verify
+   `ps -ef | grep -E 'farfieldvoice|voice-interaction|voice-app/bin'`
+   is empty and the flags are still false
+
+Both S85F profiles now include farfieldvoice in the voice group and its
+stop marker. Recheck the preload flags after any firmware/catalog event.
+
+## Auto-update disabled on both (2026-11-12)
+
+`swu-auto-upgrade` + `was-background-update` stopped and runtime-masked
+(this boot), plus the boot-durable block: the vendor unit's own
+`ConditionPathExists=!/mnt/backup/OS_UPGRADE_FLAG` against the persistent
+`/mnt/systemrw` mount. Manual update still works by removing the flag
+first. Persistent unit masking is blocked by SMACK (read-only
+`/etc/systemd/system`), matching the docs' note on firmware-backed units.
+
+
 
 - Runtime systemd masks do not survive a restart; Samsung catalog refreshes can
   restore the cached/live preload flags. Recheck after firmware updates.
