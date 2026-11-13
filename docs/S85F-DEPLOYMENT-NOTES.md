@@ -118,6 +118,20 @@ The `voice-02` phase that holds (verify after each reboot):
 Both S85F profiles now include farfieldvoice in the voice group and its
 stop marker. Recheck the preload flags after any firmware/catalog event.
 
+## Boot drift: a reboot re-enables a handful of registry rows (2026-11-13)
+
+Verified on both TVs after real power cycles: every boot silently re-enables
+a small set of disabled rows -- consistently adagent, pisa-service,
+pisa-control-service and the two utterance-recommenders, plus (65-inch once)
+AICompanionUI. Units with stop markers stay blocked regardless; the rows
+themselves must be re-disabled after each reboot. Routine: after any reboot,
+diff `SELECT app_id FROM package_app_info WHERE app_disable='true'` against
+the profile groups, then run plan_cleanup on a fresh snapshot for the drifted
+groups (its guards are built from current reality, so a drifted row re-plans
+cleanly) and re-set db/appfw/startup_appid -- the boot process resets it to
+org.tizen.tv-viewer on both of these TVs; boot still lands on Quiet Home via
+home_appid, so it is cosmetic.
+
 ## Auto-update disabled on both (2026-11-12)
 
 `swu-auto-upgrade` + `was-background-update` stopped and runtime-masked
